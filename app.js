@@ -21,6 +21,9 @@ app.get('/datasync-js-master/build/cloud-data-sync-api.js', function (req, res) 
 app.get('/javascript/script.js', function (req, res) {
     res.sendfile('public/javascripts/script.js');
 });
+app.get('/gmaps.js', function (req, res) {
+    res.sendfile('gmaps.js');
+});
 
 
 app.listen(config.port);

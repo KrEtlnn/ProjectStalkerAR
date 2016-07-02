@@ -81,6 +81,7 @@
     <Compile Include="datasync-js-master\test\test.cloud.dataSyncApi.watcher.js" />
     <Compile Include="datasync-js-master\test\test.cloud.Error.js" />
     <Compile Include="datasync-js-master\test\test.util.js" />
+    <Compile Include="gmaps.js" />
     <Compile Include="routes\users.js" />
     <Compile Include="bin\www" />
     <Content Include="package.json" />
