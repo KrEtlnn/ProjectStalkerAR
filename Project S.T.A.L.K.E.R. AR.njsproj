@@ -38,7 +38,7 @@
     <Content Include="datasync-js-master\package.json" />
     <Content Include="datasync-js-master\README.md" />
     <Content Include="datasync-js-master\test\test.html" />
-    <Content Include="public\javascripts\script.js" />
+    <Content Include="public\javascripts\map.js" />
     <Compile Include="datasync-js-master\build\cloud-data-sync-api.js" />
     <Compile Include="datasync-js-master\build\cloud-data-sync-api.min.js" />
     <Compile Include="datasync-js-master\example\model.js" />
@@ -82,6 +82,7 @@
     <Compile Include="datasync-js-master\test\test.cloud.Error.js" />
     <Compile Include="datasync-js-master\test\test.util.js" />
     <Compile Include="gmaps.js" />
+    <Content Include="public\javascripts\dogs.js" />
     <Compile Include="routes\users.js" />
     <Compile Include="bin\www" />
     <Content Include="package.json" />
