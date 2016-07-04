@@ -25,6 +25,7 @@
             };
             var markers = [];
             var map;
+            var bandosId = 0;
             function initMap() {
                 var mapOptions = {
                     center: { lat: 56.784408, lng: 35.956532 },
@@ -69,8 +70,6 @@
                     radius: 3
                 });
 
-                var bandosId = 0;
-
                 function spawnBandos() {
                     var bandosPosition = {
                         lat: function () {
@@ -103,7 +102,7 @@
                                 icon: icon.bandos,
                             });
                             markers.push(name);
-                            console.log('bandos spawned ' + bandosLocation);
+                            console.log('Бандит' + bandosId + ' spawned at ' + bandosLocation);
                             bandosId++;
                         }
                     };
@@ -117,7 +116,7 @@
                 }
 
                 if (navigator.geolocation) {
-                    navigator.geolocation.watchPosition(geolocationSuccess, geolocationFailure, { enableHighAccuracy: true });
+                    navigator.geolocation.watchPosition(geolocationSuccess, geolocationFailure, { enableHighAccuracy: true, timeout: 27000 });
 
                 } else {
                     alert('Чёт беда прям. Ты попробуй другой браузер запусти')
@@ -128,7 +127,7 @@
                     var location = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
 
                     // Отображаем эту точку на карте
-                    console.log('geolocation success');
+                    console.log('geolocation updated successfully');
                     map.setCenter(location);
                     changeMyPos(location);
 
@@ -137,7 +136,7 @@
                         if (google.maps.geometry.spherical.computeDistanceBetween(markers[i].getPosition(), myMarker.getPosition()) > 40) {
                             if (markers[i].getMap() == map) {
                                 markers[i].setMap(null);
-                                console.log('marker' + item + i + 'was hidden because he is far from you');
+                                console.log('marker ' + markers[i].getTitle() + i + ' was hidden because he is far from you');
                             };
                         };
                         //Ищем очень далёкие маркеры и удаляем их
@@ -145,13 +144,13 @@
                             markers[i].setMap(null);
                             markers.splice(i, 1);
                             bandosId--;
-                            console.log('marker' + item[i] + 'was deleted because he is very far from you');
+                            console.log('marker ' + markers[i].getTitle() + i + ' was deleted because he is very far from you');
                         };
                         //Ищем близкие маркеры и показываем их
                         if (google.maps.geometry.spherical.computeDistanceBetween(markers[i].getPosition(), myMarker.getPosition()) < 40) {
                             if (markers[i].getMap() != map) {
                                 markers[i].setMap(map);
-                                console.log('marker' + item[i] + 'is shown because he is not far from you');
+                                console.log('marker ' + markers[i].getTitle() + i + ' is shown because he is not far from you');
                             };
                         };
                     });
