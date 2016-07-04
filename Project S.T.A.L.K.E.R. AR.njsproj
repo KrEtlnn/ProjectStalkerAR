@@ -87,6 +87,9 @@
     <Compile Include="bin\www" />
     <Content Include="package.json" />
     <Content Include="public\index.html" />
+    <Content Include="public\photos\bandos.png" />
+    <Content Include="public\photos\me.png" />
+    <Content Include="public\photos\sidor.png" />
     <Content Include="public\stylesheets\style.css" />
     <Content Include="public\stylesheets\style.styl" />
     <Content Include="README.md" />
@@ -128,6 +131,7 @@
     <Folder Include="public\" />
     <Folder Include="public\images\" />
     <Folder Include="public\javascripts\" />
+    <Folder Include="public\photos\" />
     <Folder Include="public\stylesheets\" />
     <Folder Include="routes\" />
     <Folder Include="views\" />
