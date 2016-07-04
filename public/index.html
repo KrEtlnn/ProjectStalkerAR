@@ -23,7 +23,7 @@
                 dog: '/photos/dog.png',
                 me: '/photos/me.png'
             };
-            var markers = [];
+            var bandoses = [];
             var map;
             var bandosId = 0;
             function initMap() {
@@ -90,8 +90,8 @@
                         }
                     };
                     var bandosLocation = new google.maps.LatLng(bandosPosition.lat(), bandosPosition.lng());
-                    var x = Math.round(Math.random() * 0)
-                    if (x == 0) {
+                    var x = Math.round(Math.random() * 25)
+                    if (x == 15) {
                         if (bandosId < 10) {
                             var name = "bandos" + bandosId
                             var name = new google.maps.Marker({
@@ -101,14 +101,14 @@
                                 title: 'Бандит',
                                 icon: icon.bandos,
                             });
-                            markers.push(name);
+                            bandoses.push(name);
                             console.log('Бандит' + bandosId + ' spawned at ' + bandosLocation);
                             bandosId++;
                         }
                     };
                 };
 
-                setInterval(spawnBandos, 1000);
+                setInterval(spawnBandos, 5000);
 
                 function changeMyPos(location) {
                     myMarker.setPosition(location);
@@ -131,26 +131,26 @@
                     map.setCenter(location);
                     changeMyPos(location);
 
-                    markers.forEach(function (item, i) {
+                    bandoses.forEach(function (item, i) {
                         //Ищем далёкие маркеры и скрываем их
-                        if (google.maps.geometry.spherical.computeDistanceBetween(markers[i].getPosition(), myMarker.getPosition()) > 40) {
-                            if (markers[i].getMap() == map) {
-                                markers[i].setMap(null);
-                                console.log('marker ' + markers[i].getTitle() + i + ' was hidden because he is far from you');
+                        if (google.maps.geometry.spherical.computeDistanceBetween(bandoses[i].getPosition(), myMarker.getPosition()) > 40) {
+                            if (bandoses[i].getMap() == map) {
+                                bandoses[i].setMap(null);
+                                console.log('marker ' + bandoses[i].getTitle() + i + ' was hidden because he is far from you');
                             };
                         };
                         //Ищем очень далёкие маркеры и удаляем их
-                        if (google.maps.geometry.spherical.computeDistanceBetween(markers[i].getPosition(), myMarker.getPosition()) > 100) {
-                            markers[i].setMap(null);
-                            markers.splice(i, 1);
+                        if (google.maps.geometry.spherical.computeDistanceBetween(bandoses[i].getPosition(), myMarker.getPosition()) > 100) {
+                            bandoses[i].setMap(null);
+                            bandoses.splice(i, 1);
                             bandosId--;
-                            console.log('marker ' + markers[i].getTitle() + i + ' was deleted because he is very far from you');
+                            console.log('marker ' + bandoses[i].getTitle() + i + ' was deleted because he is very far from you');
                         };
                         //Ищем близкие маркеры и показываем их
-                        if (google.maps.geometry.spherical.computeDistanceBetween(markers[i].getPosition(), myMarker.getPosition()) < 40) {
-                            if (markers[i].getMap() != map) {
-                                markers[i].setMap(map);
-                                console.log('marker ' + markers[i].getTitle() + i + ' is shown because he is not far from you');
+                        if (google.maps.geometry.spherical.computeDistanceBetween(bandoses[i].getPosition(), myMarker.getPosition()) < 40) {
+                            if (bandoses[i].getMap() != map) {
+                                bandoses[i].setMap(map);
+                                console.log('marker ' + bandoses[i].getTitle() + i + ' is shown because he is not far from you');
                             };
                         };
                     });
@@ -170,6 +170,45 @@
                     };
                     alert(msg);
                 };
+
+                function bandosWalk() {
+                    bandoses.forEach(function (item,i) {
+                        var x = Math.round(Math.random() * 2);
+                        var y = Math.round(Math.random() * 2);
+                        switch (x) {
+                            case 0: {
+                                var latit = bandoses[i].getPosition().lat() + 0.000005;
+                                break;
+                            };
+                            case 1: {
+                                var latit = bandoses[i].getPosition().lat() - 0.000005;
+                                break;
+                            };
+                            case 2: {
+                                var latit = bandoses[i].getPosition().lat();
+                                break;
+                            };
+                        };
+                        switch (y) {
+                            case 0: {
+                                var longit = bandoses[i].getPosition().lng() + 0.000005;
+                                break;
+                            };
+                            case 1: {
+                                var longit = bandoses[i].getPosition().lng() - 0.000005;
+                                break;
+                            };
+                            case 2: {
+                                var longit = bandoses[i].getPosition().lng();
+                                break;
+                            };
+                        };
+                        bandoses[i].setPosition({ lat: latit, lng: longit });
+                    });
+                };
+
+                setInterval(bandosWalk, 500);
+
             };
         </script>
         <script src="javascripts/map.js"></script>
