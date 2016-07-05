@@ -20,12 +20,20 @@
             var icon = {
                 bandos: '/photos/bandos.png',
                 sidor: '/photos/sidor.png',
+                flesh: '/photos/flesh.png',
                 dog: '/photos/dog.png',
                 me: '/photos/me.png'
             };
+
+            var player = {
+                hp: 100
+            };
+
             var bandoses = [];
+            var fleshes = [];
             var map;
             var bandosId = 0;
+            var fleshId = 0;
             function initMap() {
                 var mapOptions = {
                     center: { lat: 56.784408, lng: 35.956532 },
@@ -90,25 +98,73 @@
                         }
                     };
                     var bandosLocation = new google.maps.LatLng(bandosPosition.lat(), bandosPosition.lng());
-                    var x = Math.round(Math.random() * 25)
-                    if (x == 15) {
-                        if (bandosId < 10) {
-                            var name = "bandos" + bandosId
-                            var name = new google.maps.Marker({
-                                position: bandosLocation,
-                                map: map,
-                                label: 'Бандит',
-                                title: 'Бандит',
-                                icon: icon.bandos,
-                            });
-                            bandoses.push(name);
-                            console.log('Бандит' + bandosId + ' spawned at ' + bandosLocation);
-                            bandosId++;
-                        }
+                    if (google.maps.geometry.spherical.computeDistanceBetween(bandosLocation, myMarker.getPosition()) < 40 && google.maps.geometry.spherical.computeDistanceBetween(bandosLocation, myMarker.getPosition()) > 30) {
+                        var x = Math.round(Math.random() * 25)
+                        if (x == 10) {
+                            if (bandosId < 10) {
+                                var name = "bandos" + bandosId
+                                var name = new google.maps.Marker({
+                                    position: bandosLocation,
+                                    map: map,
+                                    label: 'Бандит',
+                                    title: 'Бандит',
+                                    icon: icon.bandos,
+                                });
+                                bandoses.push(name);
+                                console.log('Бандит' + bandosId + ' spawned at ' + bandosLocation);
+                                bandosId++;
+                            };
+                        };
+                    } else {
+                        spawnBandos();
                     };
                 };
 
                 setInterval(spawnBandos, 5000);
+
+                function spawnFlesh() {
+                    var fleshPosition = {
+                        lat: function () {
+                            var i = Math.round(Math.random() * 1);
+                            switch (i) {
+                                case 0: var latit = (myMarker.getPosition().lat() + Math.round(Math.random() * 350) / 1000000); break;
+                                case 1: var latit = (myMarker.getPosition().lat() - Math.round(Math.random() * 350) / 1000000); break;
+                            };
+                            return latit;
+                        },
+                        lng: function () {
+                            var i = Math.round(Math.random() * 1);
+                            switch (i) {
+                                case 0: var longit = (myMarker.getPosition().lng() + Math.round(Math.random() * 700) / 1000000); break;
+                                case 1: var longit = (myMarker.getPosition().lng() - Math.round(Math.random() * 700) / 1000000); break;
+                            };
+                            return longit;
+                        }
+                    };
+                    var fleshLocation = new google.maps.LatLng(fleshPosition.lat(), fleshPosition.lng());
+                    if (google.maps.geometry.spherical.computeDistanceBetween(fleshLocation, myMarker.getPosition()) < 40 && google.maps.geometry.spherical.computeDistanceBetween(fleshLocation, myMarker.getPosition()) > 30) {
+                        var x = Math.round(Math.random() * 15)
+                        if (x == 10) {
+                            if (fleshId < 10) {
+                                var name = "flesh" + fleshId
+                                var name = new google.maps.Marker({
+                                    position: fleshLocation,
+                                    map: map,
+                                    label: 'Плоть',
+                                    title: 'Плоть',
+                                    icon: icon.flesh,
+                                });
+                                fleshes.push(name);
+                                console.log('Плоть' + fleshId + ' spawned at ' + fleshLocation);
+                                fleshId++;
+                            };
+                        };
+                    } else {
+                        spawnFlesh();
+                    };
+                };
+                
+                setTimeout(function () { setInterval(spawnFlesh, 5000) }, 2500);
 
                 function changeMyPos(location) {
                     myMarker.setPosition(location);
@@ -132,25 +188,58 @@
                     changeMyPos(location);
 
                     bandoses.forEach(function (item, i) {
-                        //Ищем далёкие маркеры и скрываем их
+                        //Ищем далёких бандитов и скрываем их
                         if (google.maps.geometry.spherical.computeDistanceBetween(bandoses[i].getPosition(), myMarker.getPosition()) > 40) {
                             if (bandoses[i].getMap() == map) {
                                 bandoses[i].setMap(null);
                                 console.log('marker ' + bandoses[i].getTitle() + i + ' was hidden because he is far from you');
                             };
                         };
-                        //Ищем очень далёкие маркеры и удаляем их
+                        //Ищем очень далёких бандитов и удаляем их
                         if (google.maps.geometry.spherical.computeDistanceBetween(bandoses[i].getPosition(), myMarker.getPosition()) > 100) {
                             bandoses[i].setMap(null);
                             bandoses.splice(i, 1);
                             bandosId--;
                             console.log('marker ' + bandoses[i].getTitle() + i + ' was deleted because he is very far from you');
                         };
-                        //Ищем близкие маркеры и показываем их
+                        //Ищем близких бандитов и показываем их
                         if (google.maps.geometry.spherical.computeDistanceBetween(bandoses[i].getPosition(), myMarker.getPosition()) < 40) {
                             if (bandoses[i].getMap() != map) {
                                 bandoses[i].setMap(map);
                                 console.log('marker ' + bandoses[i].getTitle() + i + ' is shown because he is not far from you');
+                            };
+                        };
+                    });
+
+                    fleshes.forEach(function (item, i) {
+                        //Получаем урон от плоти
+                        var damage = setInterval(function () {
+                            if (google.maps.geometry.spherical.computeDistanceBetween(fleshes[i].getPosition(), myMarker.getPosition()) < 5) {
+                                player.hp -= 5;
+                                console.log('you got 5 damage from' + fleshes[i].getTitle() + i + '\n HP:' + player.hp);
+                                alert("HP:" + player.hp);
+                            };
+                        },3000);
+
+                        //Ищем далёкую плоть и скрываем её
+                        if (google.maps.geometry.spherical.computeDistanceBetween(fleshes[i].getPosition(), myMarker.getPosition()) > 40) {
+                            if (fleshes[i].getMap() == map) {
+                                fleshes[i].setMap(null);
+                                console.log('marker ' + fleshes[i].getTitle() + i + ' was hidden because he is far from you');
+                            };
+                        };
+                        //Ищем очень далёкую плоть и удаляем её
+                        if (google.maps.geometry.spherical.computeDistanceBetween(fleshes[i].getPosition(), myMarker.getPosition()) > 100) {
+                            fleshes[i].setMap(null);
+                            fleshes.splice(i, 1);
+                            fleshId--;
+                            console.log('marker ' + fleshes[i].getTitle() + i + ' was deleted because he is very far from you');
+                        };
+                        //Ищем близкую плоть и показываем её
+                        if (google.maps.geometry.spherical.computeDistanceBetween(fleshes[i].getPosition(), myMarker.getPosition()) < 40) {
+                            if (fleshes[i].getMap() != map) {
+                                fleshes[i].setMap(map);
+                                console.log('marker ' + fleshes[i].getTitle() + i + ' is shown because he is not far from you');
                             };
                         };
                     });
@@ -208,6 +297,44 @@
                 };
 
                 setInterval(bandosWalk, 500);
+
+                function fleshWalk() {
+                    fleshes.forEach(function (item, i) {
+                        var x = Math.round(Math.random() * 2);
+                        var y = Math.round(Math.random() * 2);
+                        switch (x) {
+                            case 0: {
+                                var latit = fleshes[i].getPosition().lat() + 0.000005;
+                                break;
+                            };
+                            case 1: {
+                                var latit = fleshes[i].getPosition().lat() - 0.000005;
+                                break;
+                            };
+                            case 2: {
+                                var latit = fleshes[i].getPosition().lat();
+                                break;
+                            };
+                        };
+                        switch (y) {
+                            case 0: {
+                                var longit = fleshes[i].getPosition().lng() + 0.000005;
+                                break;
+                            };
+                            case 1: {
+                                var longit = fleshes[i].getPosition().lng() - 0.000005;
+                                break;
+                            };
+                            case 2: {
+                                var longit = fleshes[i].getPosition().lng();
+                                break;
+                            };
+                        };
+                        fleshes[i].setPosition({ lat: latit, lng: longit });
+                    });
+                };
+
+                setInterval(fleshWalk, 500);
 
             };
         </script>

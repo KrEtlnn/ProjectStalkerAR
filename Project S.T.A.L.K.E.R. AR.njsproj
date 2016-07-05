@@ -38,6 +38,7 @@
     <Content Include="datasync-js-master\package.json" />
     <Content Include="datasync-js-master\README.md" />
     <Content Include="datasync-js-master\test\test.html" />
+    <Content Include="public\gameover.html" />
     <Content Include="public\javascripts\map.js" />
     <Compile Include="datasync-js-master\build\cloud-data-sync-api.js" />
     <Compile Include="datasync-js-master\build\cloud-data-sync-api.min.js" />
