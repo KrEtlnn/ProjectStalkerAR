@@ -211,19 +211,24 @@
                                 console.log('marker ' + bandoses[i].getTitle() + i + ' is shown because he is not far from you');
                             };
                         };
+                        //Вибрируем, если рядом бандос
+                        if (google.maps.geometry.spherical.computeDistanceBetween(bandoses[i].getPosition(), myMarker.getPosition()) < 15) {
+                            window.navigator.vibrate([100, 50, 100, 50, 100]);
+                        };
                     });
 
                     fleshes.forEach(function (item, i) {
                         //Получаем урон от плоти
-                        var damage = setInterval(function () {
+                        var damage = setTimeout(function () {
                             if (google.maps.geometry.spherical.computeDistanceBetween(fleshes[i].getPosition(), myMarker.getPosition()) < 5) {
+                                window.navigator.vibrate(200);
                                 player.hp -= 5;
                                 console.log('you got 5 damage from' + fleshes[i].getTitle() + i + '\n HP:' + player.hp);
                                 document.getElementById('hp').innerHTML = "HP: " + player.hp;
+                                if (player.hp <= 0) { window.location = "/gameover" }
                             };
-                        }, 3000);
-                        if (player.hp <= 0) { window.location = "/gameover" }
-
+                        }, 10000);
+                        
                         //Ищем далёкую плоть и скрываем её
                         if (google.maps.geometry.spherical.computeDistanceBetween(fleshes[i].getPosition(), myMarker.getPosition()) > 40) {
                             if (fleshes[i].getMap() == map) {
@@ -244,6 +249,10 @@
                                 fleshes[i].setMap(map);
                                 console.log('marker ' + fleshes[i].getTitle() + i + ' is shown because he is not far from you');
                             };
+                        };
+                        //Вибрируем, если рядом плоть
+                        if (google.maps.geometry.spherical.computeDistanceBetween(fleshes[i].getPosition(), myMarker.getPosition()) < 10) {
+                            window.navigator.vibrate([100, 50, 100, 50, 100]);
                         };
                     });
                 };
@@ -307,11 +316,11 @@
                         var y = Math.round(Math.random() * 2);
                         switch (x) {
                             case 0: {
-                                var latit = fleshes[i].getPosition().lat() + 0.000005;
+                                var latit = fleshes[i].getPosition().lat() + 0.00001;
                                 break;
                             };
                             case 1: {
-                                var latit = fleshes[i].getPosition().lat() - 0.000005;
+                                var latit = fleshes[i].getPosition().lat() - 0.00001;
                                 break;
                             };
                             case 2: {
@@ -321,11 +330,11 @@
                         };
                         switch (y) {
                             case 0: {
-                                var longit = fleshes[i].getPosition().lng() + 0.000005;
+                                var longit = fleshes[i].getPosition().lng() + 0.00001;
                                 break;
                             };
                             case 1: {
-                                var longit = fleshes[i].getPosition().lng() - 0.000005;
+                                var longit = fleshes[i].getPosition().lng() - 0.00001;
                                 break;
                             };
                             case 2: {
