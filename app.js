@@ -27,6 +27,9 @@ app.get('/gmaps.js', function (req, res) {
 app.get('/gameover', function (req, res) {
     res.sendfile('public/gameover.html');
 });
+app.get('/flesh_idle.mp3', function (req, res) {
+    res.sendfile('public/audio/flesh_idle.mp3');
+});
 
 
 app.listen(config.port);

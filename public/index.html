@@ -99,8 +99,8 @@
                     };
                     var bandosLocation = new google.maps.LatLng(bandosPosition.lat(), bandosPosition.lng());
                     if (google.maps.geometry.spherical.computeDistanceBetween(bandosLocation, myMarker.getPosition()) < 40 && google.maps.geometry.spherical.computeDistanceBetween(bandosLocation, myMarker.getPosition()) > 30) {
-                        var x = Math.round(Math.random() * 25)
-                        if (x == 10) {
+                        var x = Math.round(Math.random() * 40)
+                        if (x == 20) {
                             if (bandosId < 10) {
                                 var name = "bandos" + bandosId
                                 var name = new google.maps.Marker({
@@ -143,8 +143,8 @@
                     };
                     var fleshLocation = new google.maps.LatLng(fleshPosition.lat(), fleshPosition.lng());
                     if (google.maps.geometry.spherical.computeDistanceBetween(fleshLocation, myMarker.getPosition()) < 40 && google.maps.geometry.spherical.computeDistanceBetween(fleshLocation, myMarker.getPosition()) > 30) {
-                        var x = Math.round(Math.random() * 15)
-                        if (x == 10) {
+                        var x = Math.round(Math.random() * 30)
+                        if (x == 15) {
                             if (fleshId < 10) {
                                 var name = "flesh" + fleshId
                                 var name = new google.maps.Marker({
@@ -250,9 +250,11 @@
                                 console.log('marker ' + fleshes[i].getTitle() + i + ' is shown because he is not far from you');
                             };
                         };
-                        //Вибрируем, если рядом плоть
-                        if (google.maps.geometry.spherical.computeDistanceBetween(fleshes[i].getPosition(), myMarker.getPosition()) < 10) {
+                        //Вибрируем и орём, если рядом плоть
+                        if (google.maps.geometry.spherical.computeDistanceBetween(fleshes[i].getPosition(), myMarker.getPosition()) < 15) {
                             window.navigator.vibrate([100, 50, 100, 50, 100]);
+                            var fleshAudio = new Audio('flesh_idle.mp3');
+                            fleshAudio.play();
                         };
                     });
                 };
