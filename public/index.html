@@ -11,9 +11,9 @@
     </head>
     <body>
         <ul id="menu">
-            <li class="li">1</li>
-            <li class="li">2</li>
-            <li class="li">3</li>
+            <li class="li" id="hp">HP:</li>
+            <li class="li"></li>
+            <li class="li"></li>
         </ul>
         <div id="map"></div>
         <script>
@@ -179,6 +179,8 @@
                 };
 
                 function geolocationSuccess(position) {
+                    document.getElementById('hp').innerHTML = 'HP: ' + player.hp;
+                    if(player.hp <= 0){window.location = "/gameover"}
                     // Преобразуем местоположение в объект LatLng
                     var location = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
 
@@ -217,9 +219,10 @@
                             if (google.maps.geometry.spherical.computeDistanceBetween(fleshes[i].getPosition(), myMarker.getPosition()) < 5) {
                                 player.hp -= 5;
                                 console.log('you got 5 damage from' + fleshes[i].getTitle() + i + '\n HP:' + player.hp);
-                                alert("HP:" + player.hp);
+                                document.getElementById('hp').innerHTML = "HP: " + player.hp;
                             };
-                        },3000);
+                        }, 3000);
+                        if (player.hp <= 0) { window.location = "/gameover" }
 
                         //Ищем далёкую плоть и скрываем её
                         if (google.maps.geometry.spherical.computeDistanceBetween(fleshes[i].getPosition(), myMarker.getPosition()) > 40) {

@@ -24,6 +24,9 @@ app.get('/javascript/script.js', function (req, res) {
 app.get('/gmaps.js', function (req, res) {
     res.sendfile('gmaps.js');
 });
+app.get('/gameover', function (req, res) {
+    res.sendfile('public/gameover.html');
+});
 
 
 app.listen(config.port);
