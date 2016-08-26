@@ -18,8 +18,11 @@ app.get('/', function (req, res) {
 app.get('/datasync-js-master/build/cloud-data-sync-api.js', function (req, res) {
     res.sendfile('datasync-js-master/build/cloud-data-sync-api.js');
 });
-app.get('/javascript/script.js', function (req, res) {
-    res.sendfile('public/javascripts/script.js');
+app.get('/javascript/map.js', function (req, res) {
+    res.sendfile('public/javascripts/map.js');
+});
+app.get('/javascript/loot.js', function (req, res) {
+    res.sendfile('public/javascripts/loot.js');
 });
 app.get('/gmaps.js', function (req, res) {
     res.sendfile('gmaps.js');
@@ -29,6 +32,9 @@ app.get('/gameover', function (req, res) {
 });
 app.get('/flesh_idle.mp3', function (req, res) {
     res.sendfile('public/audio/flesh_idle.mp3');
+});
+app.get('/vow.min.js', function (req, res) {
+    res.sendfile('vow.min.js');
 });
 
 

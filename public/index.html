@@ -8,25 +8,163 @@
         <script src="../datasync-js-master/build/cloud-data-sync-api.js" type="text/javascript"></script>
         <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR1bbsuzqtUoTOixGdrRqbv6dBZj8ceDs&callback=initMap"></script>
         <script src="../gmaps.js" type="text/javascript"></script>
+        <script src="../vow.min.js" type="text/javascript"></script>
+        <script src="javascripts/audios.js"></script>
+        <script src="javascripts/icons.js"></script>
+        <script src="javascripts/map.js"></script>
+        <script src="javascripts/loot.js"></script>
     </head>
     <body>
         <ul id="menu">
             <li class="li" id="hp">HP:</li>
-            <li class="li"></li>
-            <li class="li"></li>
+            <li class="li inventory" onclick="invMode.toggle()">Инвентарь<ul id="inventory">
+                <li class="inventoryItem" id="medkitButton" onclick="medkit.use()">Аптечка</li>
+                <li class="inventoryItem" id="moneyButton"></li>
+                <li class="lastInvItem" id="lastInvItem" style="display:none;"></li>
+                </ul></li>
+            <li class="li">
+                <ul onclick="notifMode.toggle()" id="notifButton">Click
+                    <li id="notifications"></li>
+                </ul>
+            </li>
         </ul>
+
+        <div id="shop">
+            <pre style="margin-top: 10px; width: 100%; padding-top: 23px; padding-bottom: 23px;">Здарова, что надо?</pre>
+            <pre style="border:1px solid blue;padding-top:23px;padding-bottom:23px;cursor:pointer;" onclick="buy(medkit,50)">Аптечку (50руб)</pre>
+            <pre style="border:1px solid blue;padding-top:23px;padding-bottom:23px;cursor:pointer;" onclick="shopMode.off()">Закрыть</pre>
+        </div>
+
         <div id="map"></div>
         <script>
-            var icon = {
-                bandos: '/photos/bandos.png',
-                sidor: '/photos/sidor.png',
-                flesh: '/photos/flesh.png',
-                dog: '/photos/dog.png',
-                me: '/photos/me.png'
+            var date = new Date;
+
+            /*-----ЧО НАДА СДЕЛАТЬ-----
+            1. Сделать оповещение при выходе из шоп-зоны
+            */
+
+            //Создание оповещения
+            function createNotification(notif, func){
+                if (notif.split('').length > 36) {
+                    throw (Error('Too long notification!'))
+                } else {
+                    document.getElementById('notifications').innerHTML = date.getHours() + ":" + date.getMinutes() + " | " + notif;
+                    document.getElementById('notifications').onclick = func;
+                    document.getElementById('notifButton').style.backgroundColor = "red";
+                    notifAudio.play();
+                };
+            };
+
+            createNotification('Здесь будут оповещения');
+
+            //Создание предмета и добавление в инвентарь
+            function addSubject(subName, func, reusable) {
+                var subject = document.createElement('li');
+                subject.className = "inventoryItem";
+                subject.innerHTML = subName;
+                subject.onclick = func;
+                player.inventory.push({ name: subName, use: function () { if (this.reusable == 0) { func(); inventory.removeChild(subject); for (var i = 0; i < player.inventory.length; i++) { if (player.inventory[i].name == subName && player.inventory[i].reusable == 0) { player.inventory.splice(i, 1); break;}} } else { func(); } }, reusable: reusable });
+                inventory.appendChild(subject, inventory.lastChild);
+                if (reusable == 0) {
+                    subject.onclick = function () {
+                        func(); inventory.removeChild(subject);
+                        for (var i = 0; i < player.inventory.length; i++) {
+                            if (player.inventory[i].name == subName && player.inventory[i].reusable == 0) {
+                                player.inventory.splice(i, 1);
+                                break;
+                            };
+                        };
+                    };
+                };
+            };
+
+            /*Проверка и обновление инвентаря
+            function checkInventory() {
+                for (var i = 0; i < player.inventory.length; i++) {
+                    if (player.inventory[i].name != "Аптечка") {
+                        while (inventory.lastChild != moneyButton) {
+                            inventory.removeChild(inventory.lastChild);
+                        };
+                        var invItem = document.createElement('li');
+                        invItem.className = "inventoryItem";
+                        invItem.innerHTML = player.inventory[i].name;
+                        invItem.onclick = player.inventory[i].use;
+                        inventory.appendChild(invItem, inventory.lastChild);
+                    };
+                };
+            };*/
+
+            //Переключение оповещений
+            notifMode = {
+                tog: 0,
+                on: function () {
+                    document.getElementById('notifications').style.display = 'block';
+                    this.tog = 1;
+                },
+                off: function () {
+                        document.getElementById('notifications').style.display = 'none';
+                    this.tog = 0;
+                },
+                toggle: function () {
+                    document.getElementById('notifButton').style.backgroundColor = "#5c5c5c";
+                    if (this.tog == 0) {
+                        this.on();
+                    } else {
+                        this.off();
+                    };
+                }
+            };
+
+            //Переключение магазина
+            shopMode = {
+                tog: 0,
+                on: function () {
+                    document.getElementById('shop').style.display = 'block';
+                    this.tog = 1;
+                },
+                off: function () {
+                    document.getElementById('shop').style.display = 'none';
+                    this.tog = 0;
+                },
+                toggle: function () {
+                    if (this.tog == 0) {
+                        this.on();
+                    } else {
+                        this.off();
+                    };
+                }
+            };
+
+            //Переключение инвентаря
+            invMode = {
+                tog: 0,
+                on: function () {
+                    for (var i = 0; i < document.getElementsByClassName('inventoryItem').length; i++) {
+                        document.getElementsByClassName('inventoryItem')[i].style.display = 'block';
+                    };
+                    this.tog = 1;
+                    medkit.check();
+                    document.getElementById('moneyButton').innerHTML = "Деньги: " + player.money;
+                },
+                off: function () {
+                    for (var i = 0; i < document.getElementsByClassName('inventoryItem').length; i++) {
+                        document.getElementsByClassName('inventoryItem')[i].style.display = 'none';
+                    };
+                    this.tog = 0;
+                },
+                toggle: function () {
+                    if (this.tog == 0) {
+                        this.on();
+                    } else {
+                        this.off();
+                    };
+                }
             };
 
             var player = {
-                hp: 100
+                hp: 100,
+                money: 200,
+                inventory: []
             };
 
             var bandoses = [];
@@ -43,6 +181,7 @@
                 }
                 map = new google.maps.Map(document.getElementById('map'), mapOptions);
 
+                //Маркер Сидоровича
                 var sidor = new google.maps.Marker({
                     position: { lat: 56.785167, lng: 35.958151 },
                     map: map,
@@ -61,6 +200,7 @@
                     radius: 15
                 });
 
+                //Мой маркер
                 var myMarker = new google.maps.Marker({
                     position: { lat: 1, lng: 1 },
                     label: 'Я',
@@ -78,6 +218,7 @@
                     radius: 3
                 });
 
+                //Спавн бандита с рандомной локацией
                 function spawnBandos() {
                     var bandosPosition = {
                         lat: function () {
@@ -119,9 +260,9 @@
                         spawnBandos();
                     };
                 };
-
                 setInterval(spawnBandos, 5000);
 
+                //Спавн плоти с рандомной локацией
                 function spawnFlesh() {
                     var fleshPosition = {
                         lat: function () {
@@ -163,32 +304,38 @@
                         spawnFlesh();
                     };
                 };
-                
                 setTimeout(function () { setInterval(spawnFlesh, 5000) }, 2500);
 
+                //Функция смены моей позиции
                 function changeMyPos(location) {
                     myMarker.setPosition(location);
                     myCircle.setCenter(location);
-                }
-
-                if (navigator.geolocation) {
+                    player.position = location;
+                } if (navigator.geolocation) {
                     navigator.geolocation.watchPosition(geolocationSuccess, geolocationFailure, { enableHighAccuracy: true, timeout: 27000 });
-
                 } else {
                     alert('Чёт беда прям. Ты попробуй другой браузер запусти')
                 };
 
+
+                //Функции, выполняемые при обновлении показателей GPS
                 function geolocationSuccess(position) {
                     document.getElementById('hp').innerHTML = 'HP: ' + player.hp;
                     if(player.hp <= 0){window.location = "/gameover"}
                     // Преобразуем местоположение в объект LatLng
                     var location = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-
                     // Отображаем эту точку на карте
                     console.log('geolocation updated successfully');
                     map.setCenter(location);
                     changeMyPos(location);
 
+                    setInterval(function () {
+                        if (google.maps.geometry.spherical.computeDistanceBetween(sidor.getPosition(), myMarker.getPosition()) <= 50) {
+                            createNotification('Вход в магазин',shopMode.on);
+                        };
+                    }, 1500);
+
+                    //Функции для каждого бандита
                     bandoses.forEach(function (item, i) {
                         //Ищем далёких бандитов и скрываем их
                         if (google.maps.geometry.spherical.computeDistanceBetween(bandoses[i].getPosition(), myMarker.getPosition()) > 40) {
@@ -217,6 +364,7 @@
                         };
                     });
 
+                    //Функции для каждой плоти
                     fleshes.forEach(function (item, i) {
                         //Получаем урон от плоти
                         var damage = setTimeout(function () {
@@ -224,6 +372,7 @@
                                 window.navigator.vibrate(200);
                                 player.hp -= 5;
                                 console.log('you got 5 damage from' + fleshes[i].getTitle() + i + '\n HP:' + player.hp);
+                                createNotification('Ты получил 5 урона от плоти');
                                 document.getElementById('hp').innerHTML = "HP: " + player.hp;
                                 if (player.hp <= 0) { window.location = "/gameover" }
                             };
@@ -253,7 +402,6 @@
                         //Вибрируем и орём, если рядом плоть
                         if (google.maps.geometry.spherical.computeDistanceBetween(fleshes[i].getPosition(), myMarker.getPosition()) < 15) {
                             window.navigator.vibrate([100, 50, 100, 50, 100]);
-                            var fleshAudio = new Audio('flesh_idle.mp3');
                             fleshAudio.play();
                         };
                     });
@@ -263,17 +411,19 @@
                     map.setCenter({ lat: 1, lng: 1 });
                     var msg = "";
                     switch (errorCode) {
-                        case 1: msg = "Нет разрешения";
+                        case 1: msg = "Нет разрешения. Перезагрузка";
                             break;
-                        case 2: msg = "Техническая ошибка";
+                        case 2: msg = "Техническая ошибка. Перезагрузка";
                             break;
-                        case 3: msg = "Превышено время ожидания";
+                        case 3: msg = "Превышено время ожидания. Перезагрузка";
                             break;
-                        default: msg = "Что то случилось не так";
+                        default: msg = "Что то случилось не так. Попробуйте включить GPS и подождать, пока он не определит ваше местоположение. Перезагрузка";
                     };
                     alert(msg);
+                    setTimeout(function () { window.location = "/" }, 3000);
                 };
 
+                //Функция рандомного перемещения бандита
                 function bandosWalk() {
                     bandoses.forEach(function (item,i) {
                         var x = Math.round(Math.random() * 2);
@@ -309,9 +459,9 @@
                         bandoses[i].setPosition({ lat: latit, lng: longit });
                     });
                 };
-
                 setInterval(bandosWalk, 500);
 
+                //Функция рандомного перемещения плоти
                 function fleshWalk() {
                     fleshes.forEach(function (item, i) {
                         var x = Math.round(Math.random() * 2);
@@ -347,11 +497,15 @@
                         fleshes[i].setPosition({ lat: latit, lng: longit });
                     });
                 };
-
                 setInterval(fleshWalk, 500);
+                
+                //Функция обновления показателя HP
+                setInterval(function () {
+                    document.getElementById('hp').innerHTML = "HP: " + player.hp;
+                }, 2000);
 
             };
         </script>
-        <script src="javascripts/map.js"></script>
+
     </body>
 </html>
