@@ -25,6 +25,14 @@
     }
 };
 
+var qFlash = {
+    name: "Флэха",
+    quest: "1",
+    check: function () {
+        document.getElementById('medkitButton').innerHTML = "Флэха";
+    }
+};
+
 function buy(thing, cost) {
     if (player.money >= cost) {
         player.inventory.push(thing);

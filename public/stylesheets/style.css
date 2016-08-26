@@ -23,6 +23,12 @@ body{
     border: 1px solid blue;
     height:100%;
 }
+.shopItem{
+    border:1px solid blue;
+    padding-top:23px;
+    padding-bottom:23px;
+    cursor:pointer;
+};
 
 /*.inventory:hover .inventoryItem{
     display:block;

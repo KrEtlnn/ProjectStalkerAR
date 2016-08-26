@@ -9,6 +9,7 @@
         <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDR1bbsuzqtUoTOixGdrRqbv6dBZj8ceDs&callback=initMap"></script>
         <script src="../gmaps.js" type="text/javascript"></script>
         <script src="../vow.min.js" type="text/javascript"></script>
+        <script src="javascripts/js.cookie.js"></script>
         <script src="javascripts/audios.js"></script>
         <script src="javascripts/icons.js"></script>
         <script src="javascripts/map.js"></script>
@@ -31,17 +32,35 @@
 
         <div id="shop">
             <pre style="margin-top: 10px; width: 100%; padding-top: 23px; padding-bottom: 23px;">Здарова, что надо?</pre>
-            <pre style="border:1px solid blue;padding-top:23px;padding-bottom:23px;cursor:pointer;" onclick="buy(medkit,50)">Аптечку (50руб)</pre>
-            <pre style="border:1px solid blue;padding-top:23px;padding-bottom:23px;cursor:pointer;" onclick="shopMode.off()">Закрыть</pre>
+            <pre class="shopItem" onclick="buy(medkit,50)">Аптечку (50руб)</pre>
+            <pre class="shopItem" onclick="randMission()">Задание дай</pre>
+            <pre class="shopItem" id="missionOverButton" style="display:none" onclick="missionOver()">Задание забирай</pre>
+            <pre class="shopItem" onclick="shopMode.off()">Закрыть</pre>
         </div>
 
         <div id="map"></div>
         <script>
             var date = new Date;
 
+            document.cookie = "path=/";
+
             /*-----ЧО НАДА СДЕЛАТЬ-----
             1. Сделать оповещение при выходе из шоп-зоны
             */
+
+            function missionOver() {
+                for (var i = 0; i < player.inventory.length; i++) {
+                    if (player.inventory[i].name == "Флэха" && player.inventory[i].quest == 1) {
+                        document.getElementById('missionOverButton').style.display = "none";
+                        inventory.removeChild(document.getElementById("questItem"));
+                        player.inventory.splice(i, 1);
+                        player.money += 250;
+                    };
+                };
+            };
+
+            function randMission() { };
+            function questNear() { };
 
             //Создание оповещения
             function createNotification(notif, func){
@@ -121,6 +140,11 @@
                 on: function () {
                     document.getElementById('shop').style.display = 'block';
                     this.tog = 1;
+                    for (var i = 0; i < player.inventory.length; i++) {
+                        if (player.inventory[i].name == "Флэха" && player.inventory[i].quest == 1) {
+                            document.getElementById('missionOverButton').style.display = "block";
+                        };
+                    };
                 },
                 off: function () {
                     document.getElementById('shop').style.display = 'none';
@@ -167,8 +191,11 @@
                 inventory: []
             };
 
+            if (Cookies.get('hp') == undefined) { player.hp = 100; } else { player.hp = Cookies.get('hp') };
+
             var bandoses = [];
             var fleshes = [];
+            var missions = [];
             var map;
             var bandosId = 0;
             var fleshId = 0;
@@ -218,6 +245,16 @@
                     radius: 3
                 });
 
+                //если рядом квест
+                questNear = function () {
+                    if (missions.length > 0) {
+                        if (google.maps.geometry.spherical.computeDistanceBetween(myMarker.getPosition(), missions[0].position) < 15) {
+                            player.inventory.push(qFlash);
+                            missions[0].setMap(null); missions.splice(0, 1);
+                        };
+                    };
+                };
+
                 //Спавн бандита с рандомной локацией
                 function spawnBandos() {
                     var bandosPosition = {
@@ -261,6 +298,43 @@
                     };
                 };
                 setInterval(spawnBandos, 5000);
+
+                //Изменение пустой функции рандомной миссии
+                randMission = function () {
+                    var missionPosition = {
+                        lat: function () {
+                            var i = Math.round(Math.random() * 1);
+                            switch (i) {
+                                case 0: var latit = (myMarker.getPosition().lat() + Math.round(Math.random() * 1000) / 1000000); break;
+                                case 1: var latit = (myMarker.getPosition().lat() - Math.round(Math.random() * 1000) / 1000000); break;
+                            };
+                            return latit;
+                        },
+                        lng: function () {
+                            var i = Math.round(Math.random() * 1);
+                            switch (i) {
+                                case 0: var longit = (myMarker.getPosition().lng() + Math.round(Math.random() * 1700) / 1000000); break;
+                                case 1: var longit = (myMarker.getPosition().lng() - Math.round(Math.random() * 1700) / 1000000); break;
+                            };
+                            return longit;
+                        }
+                    };
+                    if (missions.length == 0) {
+                        var missionLocation = new google.maps.LatLng(missionPosition.lat(), missionPosition.lng());
+                        var name = "mission"
+                        var name = new google.maps.Marker({
+                            position: missionLocation,
+                            map: map,
+                            label: 'mission',
+                            title: 'mission',
+                        });
+                        missions.push(name);
+                        console.log('mission' + ' spawned at ' + missionLocation);
+                        document.getElementById('missionOverButton').style.display = "block";
+                    } else {
+                        createNotification('У тебя уже есть задание!');
+                    };
+                };
 
                 //Спавн плоти с рандомной локацией
                 function spawnFlesh() {
@@ -330,7 +404,7 @@
                     changeMyPos(location);
 
                     setInterval(function () {
-                        if (google.maps.geometry.spherical.computeDistanceBetween(sidor.getPosition(), myMarker.getPosition()) <= 50) {
+                        if (google.maps.geometry.spherical.computeDistanceBetween(sidor.getPosition(), myMarker.getPosition()) <= 15) {
                             createNotification('Вход в магазин',shopMode.on);
                         };
                     }, 1500);
@@ -502,9 +576,39 @@
                 //Функция обновления показателя HP
                 setInterval(function () {
                     document.getElementById('hp').innerHTML = "HP: " + player.hp;
+                    for (var i = 0; i < player.inventory.length; i++) {
+                        if (player.inventory[i].name == "Флэха" && player.inventory[i].quest == 1 && document.getElementById("questItem") == undefined) {
+                            var item = document.createElement("li");
+                            item.innerHTML = "Флэха";
+                            item.id = "questItem";
+                            item.className = "inventoryItem";
+                            inventory.appendChild(item, lastInvItem);
+                        };
+                    };
                 }, 2000);
-
             };
+
+            setInterval(function () {
+                Cookies.set("hp", player.hp, { expires: 365 });
+                Cookies.set('money', player.money, { expires: 365 });
+                questNear();
+            }, 2500);
+
+            function loadInv() {
+                for (var i = 0; i < Cookies.get('length') ; i++) {
+                    if (Cookies.get('invItem' + i) == "Аптечка") {
+                        player.inventory.push(medkit);
+                    };
+                };
+            };
+
+            function loadMoney() {
+                if (Cookies.get('money') != undefined) {
+                    player.money = +Cookies.get('money');
+                };
+            };
+
+            window.onload = loadInv(); randMission(); loadMoney();
         </script>
 
     </body>

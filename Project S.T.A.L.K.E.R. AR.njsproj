@@ -34,6 +34,7 @@
     <Content Include="public\javascripts\loot.js" />
     <Content Include="public\javascripts\icons.js" />
     <Content Include="public\javascripts\audios.js" />
+    <Content Include="public\javascripts\js.cookie.js" />
     <Compile Include="vow.min.js" />
     <Content Include="datasync-js-master\.gitignore" />
     <Content Include="datasync-js-master\AUTHORS" />
