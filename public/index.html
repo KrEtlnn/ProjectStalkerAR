@@ -21,6 +21,7 @@
             <li class="li inventory" onclick="invMode.toggle()">Инвентарь<ul id="inventory">
                 <li class="inventoryItem" id="medkitButton" onclick="medkit.use()">Аптечка</li>
                 <li class="inventoryItem" id="moneyButton"></li>
+                <li class="inventoryItem" id="ammo"></li>
                 <li class="lastInvItem" id="lastInvItem" style="display:none;"></li>
                 </ul></li>
             <li class="li">
@@ -32,8 +33,9 @@
 
         <div id="shop">
             <pre style="margin-top: 10px; width: 100%; padding-top: 23px; padding-bottom: 23px;">Здарова, что надо?</pre>
-            <pre class="shopItem" onclick="buy(medkit,50)">Аптечку (50руб)</pre>
-            <pre class="shopItem" onclick="randMission()">Задание дай</pre>
+            <pre class="shopItem" onclick="buy(medkit,150)">Аптечку (150руб)</pre>
+            <pre class="shopItem" onclick="player.ammo += 10; player.money -= 50">Десяток патронов дай (50руб)</pre>
+            <pre class="shopItem" id="missionStartButton" onclick="randMission()">Задание дай</pre>
             <pre class="shopItem" id="missionOverButton" style="display:none" onclick="missionOver()">Задание забирай</pre>
             <pre class="shopItem" onclick="shopMode.off()">Закрыть</pre>
         </div>
@@ -52,6 +54,7 @@
                 for (var i = 0; i < player.inventory.length; i++) {
                     if (player.inventory[i].name == "Флэха" && player.inventory[i].quest == 1) {
                         document.getElementById('missionOverButton').style.display = "none";
+                        document.getElementById('missionStartButton').style.display = "block";
                         inventory.removeChild(document.getElementById("questItem"));
                         player.inventory.splice(i, 1);
                         player.money += 250;
@@ -59,6 +62,7 @@
                 };
             };
 
+            function spawnFlesh() { };
             function randMission() { };
             function questNear() { };
 
@@ -169,6 +173,7 @@
                     this.tog = 1;
                     medkit.check();
                     document.getElementById('moneyButton').innerHTML = "Деньги: " + player.money;
+                    document.getElementById('ammo').innerHTML = "Патроны: " + player.ammo;
                 },
                 off: function () {
                     for (var i = 0; i < document.getElementsByClassName('inventoryItem').length; i++) {
@@ -188,6 +193,7 @@
             var player = {
                 hp: 100,
                 money: 200,
+                ammo: 20,
                 inventory: []
             };
 
@@ -196,6 +202,8 @@
             var bandoses = [];
             var fleshes = [];
             var missions = [];
+            var myMarker;
+            var sidor;
             var map;
             var bandosId = 0;
             var fleshId = 0;
@@ -209,8 +217,8 @@
                 map = new google.maps.Map(document.getElementById('map'), mapOptions);
 
                 //Маркер Сидоровича
-                var sidor = new google.maps.Marker({
-                    position: { lat: 56.785167, lng: 35.958151 },
+                    sidor = new google.maps.Marker({
+                    position: { lat: 56.785367, lng: 35.957951 },
                     map: map,
                     label: 'Сидрыч',
                     title: 'Сидрыч',
@@ -228,7 +236,7 @@
                 });
 
                 //Мой маркер
-                var myMarker = new google.maps.Marker({
+                    myMarker = new google.maps.Marker({
                     position: { lat: 1, lng: 1 },
                     label: 'Я',
                     title: 'Я',
@@ -250,7 +258,9 @@
                     if (missions.length > 0) {
                         if (google.maps.geometry.spherical.computeDistanceBetween(myMarker.getPosition(), missions[0].position) < 15) {
                             player.inventory.push(qFlash);
-                            missions[0].setMap(null); missions.splice(0, 1);
+                            createNotification("Подобрана флэха");
+                            missions[0].setMap(null);
+                            missions.splice(0, 1);
                         };
                     };
                 };
@@ -331,13 +341,14 @@
                         missions.push(name);
                         console.log('mission' + ' spawned at ' + missionLocation);
                         document.getElementById('missionOverButton').style.display = "block";
+                        document.getElementById('missionStartButton').style.display = "none";
                     } else {
                         createNotification('У тебя уже есть задание!');
                     };
                 };
 
                 //Спавн плоти с рандомной локацией
-                function spawnFlesh() {
+                spawnFlesh = function() {
                     var fleshPosition = {
                         lat: function () {
                             var i = Math.round(Math.random() * 1);
@@ -368,8 +379,24 @@
                                     label: 'Плоть',
                                     title: 'Плоть',
                                     icon: icon.flesh,
+                                    hp:100
                                 });
                                 fleshes.push(name);
+                                name.addListener('click', function () {
+                                    if (google.maps.geometry.spherical.computeDistanceBetween(myMarker.getPosition(), name.position) < 27 && player.ammo > 0) {
+                                        var x = 0;
+                                        while (x < 400) {
+                                            x = Math.round(Math.random() * 600)
+                                        };
+                                        var y = Math.round(Math.random() * 1);
+                                        switch (y) {
+                                            case 0: if (player.ammo > 0) {
+                                                name.hp -= x / (google.maps.geometry.spherical.computeDistanceBetween(myMarker.getPosition(), name.position))
+                                            } else { createNotification("Нет патронов!") };
+                                        };
+                                        player.ammo -= 1;
+                                    } else { createNotification('Так далеко я не попаду') }
+                                });
                                 console.log('Плоть' + fleshId + ' spawned at ' + fleshLocation);
                                 fleshId++;
                             };
@@ -402,12 +429,6 @@
                     console.log('geolocation updated successfully');
                     map.setCenter(location);
                     changeMyPos(location);
-
-                    setInterval(function () {
-                        if (google.maps.geometry.spherical.computeDistanceBetween(sidor.getPosition(), myMarker.getPosition()) <= 15) {
-                            createNotification('Вход в магазин',shopMode.on);
-                        };
-                    }, 1500);
 
                     //Функции для каждого бандита
                     bandoses.forEach(function (item, i) {
@@ -477,6 +498,12 @@
                         if (google.maps.geometry.spherical.computeDistanceBetween(fleshes[i].getPosition(), myMarker.getPosition()) < 15) {
                             window.navigator.vibrate([100, 50, 100, 50, 100]);
                             fleshAudio.play();
+                        };
+                        //"Убиваем" плоть, если её здоровье меньше 100
+                        if (fleshes[i].hp <= 0) {
+                            fleshes[i].setMap(null);
+                            fleshes.splice(i, 1);
+                            fleshId--;
                         };
                     });
                 };
@@ -569,13 +596,17 @@
                             };
                         };
                         fleshes[i].setPosition({ lat: latit, lng: longit });
+                        //"Убиваем" плоть, если её здоровье меньше 100
+                        if (fleshes[i].hp <= 0) {
+                            fleshes[i].setMap(null);
+                            fleshes.splice(i, 1);
+                            fleshId--;
+                        };
                     });
                 };
                 setInterval(fleshWalk, 500);
                 
-                //Функция обновления показателя HP
                 setInterval(function () {
-                    document.getElementById('hp').innerHTML = "HP: " + player.hp;
                     for (var i = 0; i < player.inventory.length; i++) {
                         if (player.inventory[i].name == "Флэха" && player.inventory[i].quest == 1 && document.getElementById("questItem") == undefined) {
                             var item = document.createElement("li");
@@ -589,16 +620,32 @@
             };
 
             setInterval(function () {
+                //Сохраняем HP
                 Cookies.set("hp", player.hp, { expires: 365 });
+                //Сохраняем деньги
                 Cookies.set('money', player.money, { expires: 365 });
+                //Обновляем показания HP
+                document.getElementById('hp').innerHTML = "HP: " + player.hp;
+                //Если рядом с магазом - делаем кликабельное оповещение
+                if (google.maps.geometry.spherical.computeDistanceBetween(sidor.getPosition(), myMarker.getPosition()) <= 15) {
+                    createNotification('Вход в магазин', shopMode.on);
+                };
+                //Чекаем, есть ли флэха неподалёку (потом сделать так, чтобы эта тема чекалась, если квест активен)
                 questNear();
+                //Сохраняем кол-во аптечек
+                for (var i = 0, medkits = 0; i < player.inventory.length; i++) {
+                    if (player.inventory[i].name == "Аптечка") {
+                        medkits++;
+                    };
+                };
+                Cookies.set('medkits', medkits, { expires: 365 });
+                //Сохраняем кол-во патронов
+                Cookies.set('ammo', player.ammo, { expires: 365 });
             }, 2500);
 
             function loadInv() {
-                for (var i = 0; i < Cookies.get('length') ; i++) {
-                    if (Cookies.get('invItem' + i) == "Аптечка") {
-                        player.inventory.push(medkit);
-                    };
+                for (var i = 0; i < +Cookies.get('medkits') ; i++) {
+                    player.inventory.push(medkit);
                 };
             };
 
@@ -608,7 +655,13 @@
                 };
             };
 
-            window.onload = loadInv(); randMission(); loadMoney();
+            function loadAmmo() {
+                if (Cookies.get('ammo') != undefined) {
+                    player.ammo = +Cookies.get('ammo');
+                };
+            }
+
+            window.onload = loadInv(); randMission(); loadMoney(); loadAmmo();
         </script>
 
     </body>

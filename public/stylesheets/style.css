@@ -22,6 +22,7 @@ body{
     text-align:center;
     border: 1px solid blue;
     height:100%;
+    cursor:pointer;
 }
 .shopItem{
     border:1px solid blue;
