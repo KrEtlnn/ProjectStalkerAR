@@ -63,6 +63,7 @@
             };
 
             function spawnFlesh() { };
+            function spawnBandos() { };
             function randMission() { };
             function questNear() { };
 
@@ -197,7 +198,7 @@
                 inventory: []
             };
 
-            if (Cookies.get('hp') == undefined) { player.hp = 100; } else { player.hp = Cookies.get('hp') };
+            if (Cookies.get('hp') == undefined || Cookies.get('hp') <= 0) { player.hp = 100; } else { player.hp = Cookies.get('hp') };
 
             var bandoses = [];
             var fleshes = [];
@@ -266,7 +267,7 @@
                 };
 
                 //Спавн бандита с рандомной локацией
-                function spawnBandos() {
+                spawnBandos = function() {
                     var bandosPosition = {
                         lat: function () {
                             var i = Math.round(Math.random() * 1);
@@ -297,8 +298,24 @@
                                     label: 'Бандит',
                                     title: 'Бандит',
                                     icon: icon.bandos,
+                                    hp: 100
                                 });
                                 bandoses.push(name);
+                                name.addListener('click', function () {
+                                    if (google.maps.geometry.spherical.computeDistanceBetween(myMarker.getPosition(), name.position) < 37 && player.ammo > 0) {
+                                        var x = 0;
+                                        while (x < 400) {
+                                            x = Math.round(Math.random() * 600)
+                                        };
+                                        var y = Math.round(Math.random() * 1);
+                                        switch (y) {
+                                            case 0: if (player.ammo > 0) {
+                                                name.hp -= x / (google.maps.geometry.spherical.computeDistanceBetween(myMarker.getPosition(), name.position))
+                                            } else { createNotification("Нет патронов!") };
+                                        };
+                                        player.ammo -= 1;
+                                    } else { createNotification('Так далеко я не попаду') }
+                                });
                                 console.log('Бандит' + bandosId + ' spawned at ' + bandosLocation);
                                 bandosId++;
                             };
@@ -432,6 +449,11 @@
 
                     //Функции для каждого бандита
                     bandoses.forEach(function (item, i) {
+                        if (bandoses[i].hp <= 100) {
+                            bandoses[i].setMap(null);
+                            bandoses.splice(i, 1);
+                            bandosId--;
+                        };
                         //Ищем далёких бандитов и скрываем их
                         if (google.maps.geometry.spherical.computeDistanceBetween(bandoses[i].getPosition(), myMarker.getPosition()) > 40) {
                             if (bandoses[i].getMap() == map) {
@@ -452,6 +474,22 @@
                                 bandoses[i].setMap(map);
                                 console.log('marker ' + bandoses[i].getTitle() + i + ' is shown because he is not far from you');
                             };
+                        };
+
+                        //Получаем урон от выстрела
+                        if (google.maps.geometry.spherical.computeDistanceBetween(bandoses[i].getPosition(), myMarker.getPosition()) <= 35) {
+                            var bandDamage = setTimeout(function () {
+                                var x = 0;
+                                while (x < 100) {
+                                    x = Math.round(Math.random() * 200)
+                                };
+                                var y = Math.round(Math.random() * 1);
+                                switch (y) {
+                                    case 0: player.hp -= Math.round( x / (google.maps.geometry.spherical.computeDistanceBetween(myMarker.getPosition(), bandoses[i].position)));
+                                        console.log('you got damage from ' + bandoses[i]);
+                                };
+                            }, 3000);
+                            
                         };
                         //Вибрируем, если рядом бандос
                         if (google.maps.geometry.spherical.computeDistanceBetween(bandoses[i].getPosition(), myMarker.getPosition()) < 15) {
@@ -661,6 +699,7 @@
                 };
             }
 
+            if (player == undefined) { location.reload() };
             window.onload = loadInv(); randMission(); loadMoney(); loadAmmo();
         </script>
 
